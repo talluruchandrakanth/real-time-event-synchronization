@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Event Organizer</title>
+<link rel="stylesheet" href="/public/style.css">
+</head>
+
+<body>
+
+<div class="app">
+  <header class="topbar">
+    <div>
+      <h1>Event Organizer</h1>
+      <p class="tagline">Add live or scheduled events, then watch them appear instantly.</p>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" onclick="showForm('Live')">Add Live Event</button>
+      <button class="btn secondary" onclick="showForm('Scheduled')">Add Scheduled Event</button>
+      <button class="btn outline" onclick="loadEvents()">Refresh</button>
+      <button class="btn outline" onclick="window.location.href='/logout'">Logout</button>
+    </div>
+  </header>
+
+  <section id="form" class="card form-card hidden">
+    <h2 id="form-title">Create Event</h2>
+
+    <div class="grid">
+      <label>
+        <span>Event Name</span>
+        <input id="name" placeholder="Event Name">
+      </label>
+
+      <label>
+        <span>Event Type</span>
+        <input id="type" placeholder="Event Type">
+      </label>
+
+      <label>
+        <span>Location</span>
+        <input id="location" placeholder="Location">
+      </label>
+
+      <label>
+        <span>Date & Time</span>
+        <input id="date" type="datetime-local">
+      </label>
+
+      <label>
+        <span>Ticket Price (₹)</span>
+        <input id="price" placeholder="Ticket Price (₹)">
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn primary" onclick="addEvent()">Save Event</button>
+      <button class="btn outline" onclick="hideForm()">Cancel</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Events List</h2>
+    <div id="events" class="event-grid"></div>
+  </section>
+</div>
+
+<script src="/public/app.js"></script>
+
+</body>
+</html>

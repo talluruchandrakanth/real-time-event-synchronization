@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Event Synchronization - Events</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg: #0F172A;
+      --text: #F8FAFC;
+    }
+
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Dynamic Background */
+    .bg-animation {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: -1;
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
+    }
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79, 70, 229, 0.3) 0%, rgba(0, 0, 0, 0) 70%);
+      animation: float 10s infinite alternate ease-in-out;
+    }
+
+    .circle-1 {
+      width: 600px;
+      height: 600px;
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .circle-2 {
+      width: 400px;
+      height: 400px;
+      bottom: 10%;
+      right: -50px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+      animation-delay: -3s;
+    }
+
+    .circle-3 {
+      width: 500px;
+      height: 500px;
+      bottom: -200px;
+      left: 30%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, rgba(0, 0, 0, 0) 70%);
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px) scale(1);
+      }
+      100% {
+        transform: translateY(30px) scale(1.1);
+      }
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 120px 20px 40px;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* Event Grid Styles */
+    .events-section {
+      width: 100%;
+      max-width: 1200px;
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-align: left;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      text-align: left;
+    }
+
+    .event-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .event-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(129, 140, 248, 0.5);
+      box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    .event-card h3 {
+      font-size: 1.5rem;
+      margin: 0 0 12px 0;
+      color: #F8FAFC;
+    }
+
+    .event-detail {
+      margin: 8px 0;
+      font-size: 0.95rem;
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .event-price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #34D399;
+      margin-top: 16px;
+    }
+
+    .event-status {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .status-live {
+      background: rgba(239, 68, 68, 0.15);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-live::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #EF4444;
+      box-shadow: 0 0 10px #EF4444;
+      animation: blinkRed 1.5s infinite ease-in-out;
+    }
+
+    @keyframes blinkRed {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .status-scheduled {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818CF8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    /* Loading state */
+    .loading {
+      color: #94A3B8;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 30px 50px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .logo span {
+      color: #818CF8;
+    }
+
+    .back-btn {
+      color: #CBD5E1;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .back-btn:hover {
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      nav {
+        padding: 20px;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="bg-animation">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <nav>
+    <a href="/" class="logo">Event<span>Sync</span></a>
+    <div style="display: flex; align-items: center;">
+      <span id="user-status" style="margin-right: 20px; font-weight: 600; font-size: 0.95rem; color: #CBD5E1;"></span>
+      <a href="/" class="back-btn">&larr; Back to Home</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="events-section">
+      <h2 class="section-title">Upcoming & Live Events</h2>
+      <div id="events-container" class="event-grid">
+        <p class="loading">Loading events...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUserRole = null;
+
+    async function checkUserStatus() {
+      try {
+        const res = await fetch('/api/user-status');
+        const data = await res.json();
+        const statusEl = document.getElementById('user-status');
+        if (data.loggedIn) {
+          currentUserRole = data.role;
+          statusEl.innerHTML = `Hello, ${data.user} <a href="/logout" style="margin-left:10px; color:#ef4444; text-decoration:none;">(Logout)</a>`;
+        } else {
+          statusEl.innerHTML = `<a href="/public/login.html" style="color:#34D399; text-decoration:none; font-weight: bold;">Login / Register</a>`;
+        }
+      } catch (e) {
+        console.error("Status check failed", e);
+      }
+    }
+
+    async function registerEvent(eventId) {
+      if (!currentUserRole || currentUserRole !== 'user') {
+        alert("Please log in as a user to register for events.");
+        window.location.href = "/public/login.html";
+        return;
+      }
+      
+      try {
+        const res = await fetch('/api/register-event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event_id: eventId })
+        });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) {
+          loadPublicEvents(); // reload to update slot count
+        }
+      } catch (e) {
+        console.error("Registration error", e);
+        alert("Failed to register. Please try again.");
+      }
+    }
+
+    // Fetch events from the server and display them
+    async function loadPublicEvents() {
+      try {
+        const response = await fetch('/events');
+        if (!response.ok) throw new Error('Failed to fetch');
+
+        const events = await response.json();
+        const container = document.getElementById('events-container');
+
+        if (events.length === 0) {
+          container.innerHTML = '<p class="loading">No events currently available. Check back later!</p>';
+          return;
+        }
+
+        let html = '';
+        events.forEach(e => {
+          const isLive = e.event_status === 'Live';
+          const statusClass = isLive ? 'status-live' : 'status-scheduled';
+          const totalSlots = e.total_slots || 100;
+          const registered = e.registered_count || 0;
+          const slotsAvailable = totalSlots - registered;
+
+          html += `
+            <div class="event-card">
+              <div class="event-status ${statusClass}">${e.event_status}</div>
+              <h3>${e.event_name}</h3>
+              <div class="event-detail">✨ ${e.event_type}</div>
+              <div class="event-detail">📍 ${e.event_location}</div>
+              <div class="event-detail">📅 ${new Date(e.event_date).toLocaleString()}</div>
+              <div class="event-detail">👥 Slots: ${slotsAvailable > 0 ? slotsAvailable + ' available' : '<span style="color:#EF4444; font-weight:bold;">Fully Booked</span>'} (${registered}/${totalSlots})</div>
+              <div class="event-price" style="display:flex; justify-content:space-between; align-items:center;">
+                ₹${parseFloat(e.ticket_price).toFixed(2)}
+                <button onclick="registerEvent(${e.event_id})" ${slotsAvailable <= 0 ? 'disabled style="background:#475569;color:#94a3b8;cursor:not-allowed;"' : 'style="background:#4F46E5; color:white; border:none; padding:8px 16px; border-radius:8px; cursor:pointer;"'}>
+                  ${slotsAvailable > 0 ? 'Register' : 'Sold Out'}
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Error loading events:', error);
+        document.getElementById('events-container').innerHTML =
+          '<p class="loading">Failed to load events. Please try refreshing the page.</p>';
+      }
+    }
+
+    // Load events when page loads
+    document.addEventListener('DOMContentLoaded', async () => {
+      await checkUserStatus();
+      loadPublicEvents();
+    });
+  </script>
+</body>
+
+</html>
